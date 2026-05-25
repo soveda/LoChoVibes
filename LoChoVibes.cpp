@@ -1,4 +1,3 @@
-```cpp
 //
 //  LoChoVibes.cpp
 //
@@ -7,6 +6,7 @@
 //
 
 #include "ComputerCard.h"
+#include <cstdint>
 
 class LoChoVibes : public ComputerCard
 {
@@ -21,6 +21,7 @@ public:
 
     static constexpr int32_t SAMPLE_RATE = 48000;
     static constexpr int32_t DELAY_SIZE = 2048;
+    static constexpr uint32_t SINE_TABLE_SIZE = 256;
 
     int16_t delayBufferL[DELAY_SIZE] = {};
     int16_t delayBufferR[DELAY_SIZE] = {};
@@ -33,6 +34,47 @@ public:
     LFOShape currentShape = Triangle;
 
     int32_t overlayTimer = 0;
+
+    // 256-point sine lookup table.
+    // Range: -2047 to +2047
+
+    static constexpr int16_t sineTable[SINE_TABLE_SIZE] =
+    {
+        0,   50,  100,  151,  201,  251,  300,  350,
+      399,  449,  497,  546,  594,  642,  690,  737,
+      783,  830,  875,  920,  965, 1009, 1052, 1095,
+     1137, 1179, 1219, 1259, 1299, 1337, 1375, 1411,
+     1447, 1483, 1517, 1550, 1582, 1614, 1644, 1674,
+     1702, 1729, 1756, 1781, 1805, 1828, 1850, 1871,
+     1891, 1910, 1927, 1944, 1959, 1973, 1986, 1997,
+     2008, 2017, 2025, 2032, 2037, 2041, 2045, 2046,
+     2047, 2046, 2045, 2041, 2037, 2032, 2025, 2017,
+     2008, 1997, 1986, 1973, 1959, 1944, 1927, 1910,
+     1891, 1871, 1850, 1828, 1805, 1781, 1756, 1729,
+     1702, 1674, 1644, 1614, 1582, 1550, 1517, 1483,
+     1447, 1411, 1375, 1337, 1299, 1259, 1219, 1179,
+     1137, 1095, 1052, 1009,  965,  920,  875,  830,
+      783,  737,  690,  642,  594,  546,  497,  449,
+      399,  350,  300,  251,  201,  151,  100,   50,
+        0,  -50, -100, -151, -201, -251, -300, -350,
+     -399, -449, -497, -546, -594, -642, -690, -737,
+     -783, -830, -875, -920, -965,-1009,-1052,-1095,
+    -1137,-1179,-1219,-1259,-1299,-1337,-1375,-1411,
+    -1447,-1483,-1517,-1550,-1582,-1614,-1644,-1674,
+    -1702,-1729,-1756,-1781,-1805,-1828,-1850,-1871,
+    -1891,-1910,-1927,-1944,-1959,-1973,-1986,-1997,
+    -2008,-2017,-2025,-2032,-2037,-2041,-2045,-2046,
+    -2047,-2046,-2045,-2041,-2037,-2032,-2025,-2017,
+    -2008,-1997,-1986,-1973,-1959,-1944,-1927,-1910,
+    -1891,-1871,-1850,-1828,-1805,-1781,-1756,-1729,
+    -1702,-1674,-1644,-1614,-1582,-1550,-1517,-1483,
+    -1447,-1411,-1375,-1337,-1299,-1259,-1219,-1179,
+    -1137,-1095,-1052,-1009, -965, -920, -875, -830,
+     -783, -737, -690, -642, -594, -546, -497, -449,
+     -399, -350, -300, -251, -201, -151, -100,  -50
+    >>>
+
+    };
 
     void ProcessSample() override
     {
@@ -58,7 +100,9 @@ public:
         if (SwitchChanged() && SwitchVal() == Switch::Down)
         {
             currentShape =
-                static_cast<LFOShape>((currentShape + 1) % 3);
+                static_cast<LFOShape>(
+                    (static_cast<int>(currentShape) + 1) % 3
+                );
 
             overlayTimer = SAMPLE_RATE / 2;
         }
@@ -124,11 +168,22 @@ public:
 
         // Output audio.
 
-        AudioOut1(outL);
-        AudioOut2(outR);
+        AudioOut1(ClampAudio(outL));
+        AudioOut2(ClampAudio(outR));
     }
 
 private:
+
+    int16_t ClampAudio(int32_t v)
+    {
+        if (v > 2047)
+            return 2047;
+
+        if (v < -2048)
+            return -2048;
+
+        return static_cast<int16_t>(v);
+    }
 
     int32_t SoftClip(int32_t input, int32_t amount)
     {
@@ -170,13 +225,10 @@ private:
 
             case Sine:
             {
-                // Placeholder pseudo-sine.
-                // Replace with LUT later.
+                uint32_t index =
+                    (lfoPhase >> 24) & 0xFF;
 
-                int32_t ramp =
-                    (lfoPhase >> 20) & 4095;
-
-                return ramp - 2048;
+                return sineTable[index];
             }
 
             case Square:
@@ -191,7 +243,7 @@ private:
         return 0;
     }
 
-    int32_t ReadDelay(int16_t* buffer,
+    int32_t ReadDelay(const int16_t* buffer,
                       int32_t delaySamples)
     {
         int32_t readIndex =
@@ -215,7 +267,7 @@ private:
         if (v > 4095)
             return 4095;
 
-        return v;
+        return static_cast<uint16_t>(v);
     }
 
     void UpdateLEDs(int32_t rate,
@@ -283,4 +335,3 @@ int main()
     LoChoVibes card;
     card.Run();
 }
-```
