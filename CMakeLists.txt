@@ -1,49 +1,72 @@
 cmake_minimum_required(VERSION 3.13)
 
-include(pico_sdk_import.cmake)
+# ============================================================
+# Raspberry Pi Pico SDK
+# ============================================================
 
-project(locho_vibes)
+set(PICO_SDK_PATH "/Users/adrianvos/pico-sdk")
+
+include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
+
+# ============================================================
+# Project
+# ============================================================
+
+project(LoChoVibe C CXX ASM)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
 
+# ============================================================
+# Initialise Pico SDK
+# ============================================================
+
 pico_sdk_init()
 
-add_executable(locho_vibes
-    locho_vibes.cpp
+# ============================================================
+# Executable
+# ============================================================
+
+add_executable(LoChoVibe
+    LoChoVibe.cpp
 )
 
-target_include_directories(locho_vibes PRIVATE
-    ../../Demonstrations+HelloWorlds/PicoSDK/ComputerCard
+# ============================================================
+# Include paths
+# ============================================================
+
+target_include_directories(LoChoVibe PRIVATE
+    .
 )
 
-target_compile_options(locho_vibes PRIVATE
-    -Wall
-    -Wextra
-    -Wdouble-promotion
-    -Wfloat-conversion
-)
+# ============================================================
+# Libraries required by ComputerCard
+# ============================================================
 
-target_compile_definitions(locho_vibes PRIVATE
-    PICO_XOSC_STARTUP_DELAY_MULTIPLIER=64
-)
-
-target_link_libraries(locho_vibes
+target_link_libraries(LoChoVibe
     pico_stdlib
     pico_unique_id
+
     hardware_adc
-    hardware_dma
     hardware_pwm
+    hardware_dma
     hardware_spi
+    hardware_clocks
+    hardware_flash
     hardware_i2c
 )
 
-# Strongly recommended for Workshop Computer timing stability.
-# Running entirely from RAM avoids flash cache timing jitter.
-pico_set_binary_type(locho_vibes copy_to_ram)
+# ============================================================
+# Optimisation
+# ============================================================
 
-# USB stdio interferes with the normalisation probe system.
-pico_enable_stdio_usb(locho_vibes 0)
-pico_enable_stdio_uart(locho_vibes 0)
+target_compile_options(LoChoVibe PRIVATE
+    -O3
+    -ffast-math
+)
 
-pico_add_extra_outputs(locho_vibes)
+# ============================================================
+# Create UF2/BIN/etc
+# ============================================================
+
+pico_add_extra_outputs(LoChoVibe)
