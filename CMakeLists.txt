@@ -12,7 +12,7 @@ include(${PICO_SDK_PATH}/external/pico_sdk_import.cmake)
 # Project
 # ============================================================
 
-project(LoChoVibe C CXX ASM)
+project(LoChoVibes C CXX ASM)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 17)
@@ -27,15 +27,15 @@ pico_sdk_init()
 # Executable
 # ============================================================
 
-add_executable(LoChoVibe
-    LoChoVibe.cpp
+add_executable(LoChoVibes
+    LoChoVibes.cpp
 )
 
 # ============================================================
 # Include paths
 # ============================================================
 
-target_include_directories(LoChoVibe PRIVATE
+target_include_directories(LoChoVibes PRIVATE
     .
 )
 
@@ -43,7 +43,7 @@ target_include_directories(LoChoVibe PRIVATE
 # Libraries required by ComputerCard
 # ============================================================
 
-target_link_libraries(LoChoVibe
+target_link_libraries(LoChoVibes
     pico_stdlib
     pico_unique_id
 
@@ -60,7 +60,7 @@ target_link_libraries(LoChoVibe
 # Optimisation
 # ============================================================
 
-target_compile_options(LoChoVibe PRIVATE
+target_compile_options(LoChoVibes PRIVATE
     -O3
     -ffast-math
 )
@@ -69,4 +69,4 @@ target_compile_options(LoChoVibe PRIVATE
 # Create UF2/BIN/etc
 # ============================================================
 
-pico_add_extra_outputs(LoChoVibe)
+pico_add_extra_outputs(LoChoVibes)
