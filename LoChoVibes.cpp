@@ -81,17 +81,11 @@ public:
         // Workshop Computer audio range:
         // approximately -2048 to +2047.
 
-        int32_t inL = AudioIn1();
-        int32_t inR = AudioIn2();
+        int32_t mono =
+            (AudioIn1() + AudioIn2()) >> 1;
 
-        // Mono-to-stereo normalization.
-        // If right input is effectively silent,
-        // copy left input to right.
-
-        if (inR > -8 && inR < 8)
-        {
-            inR = inL;
-        }
+        int32_t inL = mono;
+        int32_t inR = mono;
         // Read controls.
 
         int32_t rateKnob = KnobVal(Knob::Main);
@@ -132,11 +126,16 @@ public:
 
         // Stereo modulation offsets.
 
+        int32_t depth = 16 + depthKnob;
+
+        int32_t modulation =
+            (lfo * depth) >> 10;
+
         int32_t delayL =
-            96 + ((lfo * depth) >> 11);
+            48 + modulation;
 
         int32_t delayR =
-            160 - ((lfo * depth) >> 11);
+            96 - modulation;
 
         // Prevent invalid negative delay values.
 
@@ -157,8 +156,8 @@ public:
 
         if (!vibratoMode)
         {
-            outL = (outL + inL) >> 2;
-            outR = (outR + inR) >> 2;
+            outL = (inL + outL) >> 1;
+            outR = (inR + outR) >> 1;
         }
 
         // Write incoming audio into delay buffers.
@@ -194,18 +193,25 @@ private:
 
     int32_t SoftClip(int32_t input, int32_t amount)
     {
-        // Simple soft saturation placeholder.
+        // Gentle drive scaling.
 
-        int32_t drive = 2048 + amount;
+        int32_t drive =
+            2048 + (amount >> 3);
 
         int32_t x =
             (input * drive) >> 11;
 
-        if (x > 2047)
-            x = 2047;
+        // Simple soft knee.
 
-        if (x < -2048)
-            x = -2048;
+        if (x > 1536)
+        {
+            x = 1536 + ((x - 1536) >> 2);
+        }
+
+        if (x < -1536)
+        {
+            x = -1536 + ((x + 1536) >> 2);
+        }
 
         return x;
     }
