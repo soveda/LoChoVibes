@@ -122,14 +122,13 @@ public:
 
         // Delay modulation depth.
 
-        int32_t depth = 8 + (depthKnob >> 1);
-
-        // Stereo modulation offsets.
-
-        int32_t depth = 16 + depthKnob;
+        int32_t depth =
+            16 + depthKnob;
 
         int32_t modulation =
             (lfo * depth) >> 10;
+
+        // Stereo modulation offsets.
 
         int32_t delayL =
             48 + modulation;
@@ -156,8 +155,11 @@ public:
 
         if (!vibratoMode)
         {
-            outL = (inL + outL) >> 1;
-            outR = (inR + outR) >> 1;
+            outL =
+                ((inL * 3) + (outL * 2)) / 5;
+
+            outR =
+                ((inR * 3) + (outR * 2)) / 5;
         }
 
         // Write incoming audio into delay buffers.
