@@ -84,6 +84,14 @@ public:
         int32_t inL = AudioIn1();
         int32_t inR = AudioIn2();
 
+        // Mono-to-stereo normalization.
+        // If right input is effectively silent,
+        // copy left input to right.
+
+        if (inR > -8 && inR < 8)
+        {
+            inR = inL;
+        }
         // Read controls.
 
         int32_t rateKnob = KnobVal(Knob::Main);
@@ -207,7 +215,7 @@ private:
         // Rate scaling.
         // Will likely need tuning by ear.
 
-        lfoPhase += 200 + (rate << 2);
+        lfoPhase += 10000 + (rate << 12);
 
         switch(currentShape)
         {
