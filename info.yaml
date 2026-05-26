@@ -3,7 +3,6 @@ author: Adrian Vos
 version: 0.1.0
 status: Beta
 
-description: >
   Stereo chorus and vibrato effect for Workshop Computer
   featuring triangle, sine, and square LFO modes,
   modulation-based delay movement, and tape-style saturation.
