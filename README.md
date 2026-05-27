@@ -2,38 +2,68 @@
 
 LoCho Vibes is a stereo lo-fi chorus and vibrato effect for the Music Thing Modular Workshop Computer.
 
-Inspired by the unstable movement and degraded character of the [ZVEX Lo-Fi Junky](https://zvexmodular.com/lo-fi-junky/?utm_source=chatgpt.com), this card focuses on animated pitch movement, stereo widening, soft saturation, and broken cassette-style modulation.
-
-This is not a clean studio chorus.
-
-It is designed to wobble, smear, drift, and occasionally misbehave in musically useful ways.
+Inspired by the unstable movement and degraded character of the ZVEX Lo-Fi Junky, this card focuses on animated pitch movement, stereo widening, soft saturation, compression-style coloration, and broken cassette-style modulation.
 
 ---
 
 # Features
 
 * Stereo chorus and vibrato modes
-* Triangle, sine, and square-wave LFOs
-* Abrupt square-wave “stutter” modulation
-* Soft saturation stage
+* Triangle, sine, and smoothed square-wave LFOs
+* Bipolar Character control
+* Lo-fi degradation and compression behaviour
+* Soft tape-style saturation
 * Stereo modulated delay architecture
+* Stereo chorus widening
 * Temporary LED overlay for LFO shape selection
-* Timing-safe integer DSP
-* Designed specifically for Workshop Computer hardware character
 
 ---
 
 # Controls
 
-| Control                 | Function               |
-| ----------------------- | ---------------------- |
-| Main                    | Modulation rate        |
-| X                       | Modulation depth       |
-| Y                       | Saturation / character |
-| Switch Up               | Chorus mode            |
-| Switch Middle           | Vibrato mode           |
-| Switch Down (momentary) | Cycle LFO shape        |
+| Control                 | Function                          |
+| ----------------------- | --------------------------------- |
+| Main                    | Modulation rate                   |
+| X                       | Modulation depth                  |
+| Y                       | Character (Lo-Fi ↔ Compression)   |
+| Switch Up               | Chorus mode                       |
+| Switch Middle           | Vibrato mode                      |
+| Switch Down (momentary) | Cycle LFO shape                   |
 
+---
+
+# Character Control
+
+The Character knob is bipolar.
+
+## Counter-Clockwise — Lo-Fi
+
+Turning the control counter-clockwise introduces:
+
+* softer headroom
+* degraded saturation
+* darker transient response
+* unstable cassette-style texture
+* reduced signal clarity
+
+
+## Center Position — Neutral
+
+At approximately 12 o’clock:
+
+* saturation becomes minimal
+* dynamics remain mostly unchanged
+* modulation becomes cleaner and more transparent
+
+## Clockwise — Compression
+
+Turning clockwise introduces:
+
+* gain increase
+* soft limiting
+* compressed transient response
+* denser modulation texture
+* more forward chorus character
 ---
 
 # Modes
@@ -42,18 +72,23 @@ It is designed to wobble, smear, drift, and occasionally misbehave in musically 
 
 In chorus mode:
 
-* Dry signal remains mixed with the delay line
-* Left and right modulation phases differ
-* Produces stereo width and motion
-* Works well for subtle widening or unstable tape chorus
+* dry signal remains blended with the delay line
+* modulation is intentionally restrained
+* stereo delay offsets widen the image
+* chorus remains relatively subtle and musical
+
+The chorus voicing is designed to sit closer to vintage modulation pedals and tape chorus than exaggerated modern DSP chorus.
 
 ## Vibrato
 
 In vibrato mode:
 
-* Output becomes fully wet
-* Pitch modulation becomes much more obvious
-* Behaves more like warped tape or unstable cassette playback
+* output becomes fully wet
+* dry signal is completely removed
+* pitch modulation becomes much more obvious
+* behaves more like warped tape playback or unstable cassette transport
+
+At higher depths this mode can become heavily seasick and degraded.
 
 ---
 
@@ -63,22 +98,32 @@ In vibrato mode:
 
 Smooth and classic.
 
-Good for traditional chorus movement.
+Good for traditional chorus movement and subtle stereo animation.
 
 ## Sine
 
 Softer and more liquid.
 
-Useful for gentle vibrato and drifting modulation.
+Useful for drifting modulation and gentler tape-style wobble.
 
 ## Square
 
-Abrupt delay jumps.
+Abrupt stepped modulation with smoothing applied internally.
 
-Creates the broken stutter texture associated with warped cassette playback and the Lo-Fi Junky sound.
+Produces broken cassette-style pitch jumps, unstable stutter movement, and aggressive lo-fi modulation textures.
 
-The clicks are intentional.
+---
 
+# Stereo Behaviour
+
+LoCho Vibes converts incoming audio to mono internally before generating a stereo modulation field.
+
+The left and right channels use different delay offsets and opposite modulation movement to create:
+
+* stereo widening
+* animated spatial movement
+* unstable tape-style drift
+* asymmetrical chorus behaviour
 ---
 
 # LED Behaviour
@@ -105,80 +150,13 @@ During normal operation:
 
 * LEDs display modulation activity
 * brightness reflects movement and parameter state
-* mappings may evolve during tuning
+* LEDs animate with the active LFO
 
 ---
 
-# DSP Notes
 
-LoCho Vibes uses:
-
-* fixed-point DSP
-* integer arithmetic
-* short modulated delay lines
-* lightweight interpolation
-* soft clipping
-
-The RP2040 has no hardware floating point, so the design avoids expensive floating-point DSP inside `ProcessSample()`.
-
-The implementation intentionally preserves some roughness and modulation texture rather than aggressively smoothing everything away.
-
----
-
-# Technical Notes
-
-* Audio runs at 48kHz using the ComputerCard framework
-* Designed for ComputerCard v0.3.0
-* Optimised for timing stability on Workshop Computer hardware
-* Intended to run using:
-
-  * `copy_to_ram`
-  * `PICO_XOSC_STARTUP_DELAY_MULTIPLIER=64`
-
----
 
 # Current Status
 
-Early architecture and DSP scaffold.
+LoCho Vibes is now in a stable and musically usable state.
 
-Current focus:
-
-* modulation behaviour
-* stereo movement
-* LFO interaction
-* Workshop UI behaviour
-* core lo-fi character
-
-Future possibilities may include:
-
-* noise injection
-* tape dropouts
-* clock instability
-* compander-style compression
-* CV modulation
-* pulse-synchronised modulation
-* feedback textures
-
----
-
-# Build Notes
-
-Recommended CMake options:
-
-```cmake
-pico_set_binary_type(locho_vibes copy_to_ram)
-
-target_compile_definitions(locho_vibes PRIVATE
-    PICO_XOSC_STARTUP_DELAY_MULTIPLIER=64
-)
-```
-
----
-
-# Platform
-
-Built for the Music Thing Modular Workshop Computer.
-
-* [Workshop Computer](https://www.musicthing.co.uk/workshopsystem/?utm_source=chatgpt.com)
-* [Program Cards](https://www.musicthing.co.uk/Computer_Program_Cards/?utm_source=chatgpt.com)
-* [Workshop Computer Cards Repository](https://tomwhitwell.github.io/Workshop_Computer/?utm_source=chatgpt.com)
