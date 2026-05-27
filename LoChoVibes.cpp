@@ -223,7 +223,7 @@ private:
         // Rate scaling.
         // Will likely need tuning by ear.
 
-        lfoPhase += 1500 + (rate << 9);
+        lfoPhase += 900 + (rate << 8);
 
         switch(currentShape)
         {
@@ -248,12 +248,18 @@ private:
 
             case Square:
             {
-                return
+                int32_t square =
                     (lfoPhase & 0x80000000)
-                    ? 2047
-                    : -2048;
+                    ? 1536
+                    : -1536;
+
+                static int32_t smoothed = 0;
+
+                smoothed +=
+                    (square - smoothed) >> 4;
+
+                return smoothed;
             }
-        }
 
         return 0;
     }
