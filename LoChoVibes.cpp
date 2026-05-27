@@ -81,11 +81,19 @@ public:
         // Workshop Computer audio range:
         // approximately -2048 to +2047.
 
-        int32_t mono =
-            (AudioIn1() + AudioIn2()) >> 1;
+        int32_t in1 = AudioIn1();
+        int32_t in2 = AudioIn2();
 
-        int32_t inL = mono;
-        int32_t inR = mono;
+        int32_t mono;
+
+        if (in2 > -8 && in2 < 8)
+        {
+            mono = in1;
+        }
+        else
+        {
+            mono = (in1 + in2) >> 1;
+        }
         // Read controls.
 
         int32_t rateKnob = KnobVal(Knob::Main);
@@ -123,10 +131,10 @@ public:
         // Delay modulation depth.
 
         int32_t depth =
-            16 + depthKnob;
+            8 + (depthKnob >> 3);
 
         int32_t modulation =
-            (lfo * depth) >> 10;
+            (lfo * depth) >> 11;
 
         // Stereo modulation offsets.
 
@@ -230,37 +238,37 @@ private:
             case Triangle:
             {
                 int32_t tri =
-                    (lfoPhase >> 19) & 0x1FFF;
-
+                (lfoPhase >> 19) & 0x1FFF;
+                
                 if (tri > 4095)
                     tri = 8191 - tri;
-
+                
                 return tri - 2048;
             }
-
+                
             case Sine:
             {
                 uint32_t index =
-                    (lfoPhase >> 24) & 0xFF;
-
+                (lfoPhase >> 24) & 0xFF;
+                
                 return sineTable[index];
             }
-
+                
             case Square:
             {
                 int32_t square =
-                    (lfoPhase & 0x80000000)
-                    ? 1536
-                    : -1536;
-
+                (lfoPhase & 0x80000000)
+                ? 1536
+                : -1536;
+                
                 static int32_t smoothed = 0;
-
+                
                 smoothed +=
-                    (square - smoothed) >> 4;
-
+                (square - smoothed) >> 4;
+                
                 return smoothed;
             }
-
+        }
         return 0;
     }
 
