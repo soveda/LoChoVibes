@@ -229,6 +229,7 @@ public:
 
         UpdateLEDs(rateKnob,
                    depthKnob,
+                   characterKnob,
                    lfo);
 
         // Outputs.
@@ -371,6 +372,7 @@ private:
 
     void UpdateLEDs(int32_t rate,
                     int32_t depth,
+                    int32_t character,
                     int32_t lfo)
     {
         if (overlayTimer > 0)
