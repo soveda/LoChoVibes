@@ -1,4 +1,3 @@
-```cpp
 //
 //  LoChoVibes.cpp
 //
@@ -413,17 +412,47 @@ private:
             return;
         }
 
+        // Character display.
+        // Center = both off.
+
+        int32_t centered =
+            character - 2048;
+
+        int32_t lofiAmount = 0;
+        int32_t compAmount = 0;
+
+        if (centered < 0)
+        {
+            lofiAmount =
+                (-centered) << 1;
+        }
+        else
+        {
+            compAmount =
+                centered << 1;
+        }
+
+        // LED 0 = rate
+
         LedBrightness(0,
             ClampLED(rate));
 
+        // LED 1 = modulation depth
+
         LedBrightness(1,
-            ClampLED(depth));
+            ClampLED(depth << 3));
+
+        // LED 2 = CCW lo-fi amount
 
         LedBrightness(2,
-            ClampLED(depth));
+            ClampLED(lofiAmount));
+
+        // LED 3 = CW compression amount
 
         LedBrightness(3,
-            ClampLED(rate));
+            ClampLED(compAmount));
+
+        // LED pair = modulation animation
 
         LedBrightness(4,
             ClampLED(lfo + 2048));
