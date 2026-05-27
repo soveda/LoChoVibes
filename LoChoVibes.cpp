@@ -206,21 +206,21 @@ private:
         // Gentle drive scaling.
 
         int32_t drive =
-            2048 + (amount >> 3);
+            2048 + (amount >> 2);
 
         int32_t x =
             (input * drive) >> 11;
 
         // Simple soft knee.
 
-        if (x > 1536)
+        if (x > 1289)
         {
-            x = 1536 + ((x - 1536) >> 2);
+            x = 1280 + ((x - 1280) >> 2);
         }
 
-        if (x < -1536)
+        if (x < -1280)
         {
-            x = -1536 + ((x + 1536) >> 2);
+            x = -1280 + ((x + 1280) >> 2);
         }
 
         return x;
