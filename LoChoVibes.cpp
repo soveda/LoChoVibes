@@ -135,7 +135,7 @@ public:
 
         int32_t modulation =
             (lfo * depth) >> 11;
-
+        
         // Stereo modulation offsets.
 
         int32_t delayL =
