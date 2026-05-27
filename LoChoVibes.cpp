@@ -1,6 +1,6 @@
+```cpp
 //
 //  LoChoVibes.cpp
-//
 //
 //  Created by Adrian Vos on 25/05/2026.
 //
@@ -28,15 +28,13 @@ public:
 
     int32_t writeIndex = 0;
 
-    // Unsigned overflow is intentional for cyclic LFO phase.
+    // Unsigned overflow is intentional.
+
     uint32_t lfoPhase = 0;
 
     LFOShape currentShape = Triangle;
 
     int32_t overlayTimer = 0;
-
-    // 256-point sine lookup table.
-    // Range: -2047 to +2047
 
     static constexpr int16_t sineTable[SINE_TABLE_SIZE] =
     {
@@ -72,71 +70,120 @@ public:
     -1137,-1095,-1052,-1009, -965, -920, -875, -830,
      -783, -737, -690, -642, -594, -546, -497, -449,
      -399, -350, -300, -251, -201, -151, -100,  -50
-
     };
 
     void ProcessSample() override
     {
-        // Read audio inputs.
-        // Workshop Computer audio range:
-        // approximately -2048 to +2047.
+        // Mono input normalization.
 
-        int32_t in1 = AudioIn1();
-        int32_t in2 = AudioIn2();
+        int32_t mono =
+            (AudioIn1() + AudioIn2()) >> 1;
 
-        int32_t mono;
+        int32_t inL = mono;
+        int32_t inR = mono;
 
-        if (in2 > -8 && in2 < 8)
-        {
-            mono = in1;
-        }
-        else
-        {
-            mono = (in1 + in2) >> 1;
-        }
-        // Read controls.
+        // Controls.
 
-        int32_t rateKnob = KnobVal(Knob::Main);
-        int32_t depthKnob = KnobVal(Knob::X);
-        int32_t characterKnob = KnobVal(Knob::Y);
+        int32_t rateKnob =
+            KnobVal(Knob::Main);
+
+        int32_t depthKnob =
+            KnobVal(Knob::X);
+
+        int32_t characterKnob =
+            KnobVal(Knob::Y);
 
         // Switch handling.
-        //
-        // Up      = Chorus
-        // Middle  = Vibrato
-        // Down    = Momentary LFO shape select
 
-        if (SwitchChanged() && SwitchVal() == Switch::Down)
+        if (SwitchChanged() &&
+            SwitchVal() == Switch::Down)
         {
             currentShape =
                 static_cast<LFOShape>(
                     (static_cast<int>(currentShape) + 1) % 3
                 );
 
-            overlayTimer = SAMPLE_RATE / 2;
+            overlayTimer =
+                SAMPLE_RATE / 2;
         }
 
         bool vibratoMode =
             (SwitchVal() == Switch::Middle);
 
-        // Saturation stage.
+        // Character control.
+        // CCW = lo-fi.
+        // Center = neutral.
+        // CW = compression.
 
-        inL = SoftClip(inL, characterKnob);
-        inR = SoftClip(inR, characterKnob);
+        int32_t centered =
+            characterKnob - 2048;
 
-        // Generate modulation waveform.
+        // LO-FI SIDE.
 
-        int32_t lfo = GenerateLFO(rateKnob);
+        if (centered < 0)
+        {
+            int32_t lofi =
+                -centered;
 
-        // Delay modulation depth.
+            inL =
+                (inL * (4096 - (lofi >> 2))) >> 12;
+
+            inR =
+                (inR * (4096 - (lofi >> 2))) >> 12;
+
+            inL =
+                SoftClip(inL, lofi >> 3);
+
+            inR =
+                SoftClip(inR, lofi >> 3);
+        }
+
+        // COMPRESSED SIDE.
+
+        else if (centered > 0)
+        {
+            int32_t comp =
+                centered;
+
+            inL =
+                (inL * (4096 + (comp >> 1))) >> 12;
+
+            inR =
+                (inR * (4096 + (comp >> 1))) >> 12;
+
+            inL =
+                SoftLimit(inL);
+
+            inR =
+                SoftLimit(inR);
+
+            inL =
+                SoftClip(inL, comp >> 4);
+
+            inR =
+                SoftClip(inR, comp >> 4);
+        }
+
+        else
+        {
+            inL = SoftClip(inL, 0);
+            inR = SoftClip(inR, 0);
+        }
+
+        // Generate LFO.
+
+        int32_t lfo =
+            GenerateLFO(rateKnob);
+
+        // Reduced modulation depth.
 
         int32_t depth =
             8 + (depthKnob >> 3);
 
         int32_t modulation =
             (lfo * depth) >> 11;
-        
-        // Stereo modulation offsets.
+
+        // Stereo delay offsets.
 
         int32_t delayL =
             48 + modulation;
@@ -144,13 +191,13 @@ public:
         int32_t delayR =
             96 - modulation;
 
-        // Prevent invalid negative delay values.
-
         if (delayL < 1)
             delayL = 1;
 
         if (delayR < 1)
             delayR = 1;
+
+        // Read delay lines.
 
         int32_t outL =
             ReadDelay(delayBufferL, delayL);
@@ -158,19 +205,19 @@ public:
         int32_t outR =
             ReadDelay(delayBufferR, delayR);
 
-        // Chorus retains dry signal.
-        // Vibrato is fully wet.
+        // Chorus mix.
+        // Vibrato remains fully wet.
 
         if (!vibratoMode)
         {
             outL =
-                ((inL * 3) + (outL * 2)) / 5;
+                ((inL * 4) + outL) / 5;
 
             outR =
-                ((inR * 3) + (outR * 2)) / 5;
+                ((inR * 4) + outR) / 5;
         }
 
-        // Write incoming audio into delay buffers.
+        // Write delay buffers.
 
         delayBufferL[writeIndex] = inL;
         delayBufferR[writeIndex] = inR;
@@ -178,11 +225,13 @@ public:
         writeIndex++;
         writeIndex &= (DELAY_SIZE - 1);
 
-        // LED handling.
+        // LEDs.
 
-        UpdateLEDs(rateKnob, depthKnob, lfo);
+        UpdateLEDs(rateKnob,
+                   depthKnob,
+                   lfo);
 
-        // Output audio.
+        // Outputs.
 
         AudioOut1(ClampAudio(outL));
         AudioOut2(ClampAudio(outR));
@@ -201,26 +250,44 @@ private:
         return static_cast<int16_t>(v);
     }
 
-    int32_t SoftClip(int32_t input, int32_t amount)
+    int32_t SoftClip(int32_t input,
+                     int32_t amount)
     {
-        // Gentle drive scaling.
-
         int32_t drive =
-            2048 + (amount >> 2);
+            2048 + (amount >> 4);
 
         int32_t x =
             (input * drive) >> 11;
 
-        // Simple soft knee.
+        // Tape-style soft knee.
 
-        if (x > 1289)
+        if (x > 1400)
         {
-            x = 1280 + ((x - 1280) >> 2);
+            x =
+                1400 + ((x - 1400) >> 3);
         }
 
-        if (x < -1280)
+        if (x < -1400)
         {
-            x = -1280 + ((x + 1280) >> 2);
+            x =
+                -1400 + ((x + 1400) >> 3);
+        }
+
+        return x;
+    }
+
+    int32_t SoftLimit(int32_t x)
+    {
+        if (x > 1024)
+        {
+            x =
+                1024 + ((x - 1024) >> 2);
+        }
+
+        if (x < -1024)
+        {
+            x =
+                -1024 + ((x + 1024) >> 2);
         }
 
         return x;
@@ -228,47 +295,50 @@ private:
 
     int32_t GenerateLFO(int32_t rate)
     {
-        // Rate scaling.
-        // Will likely need tuning by ear.
+        // Slightly slower overall rate.
 
-        lfoPhase += 900 + (rate << 8);
+        lfoPhase +=
+            900 + (rate << 8);
 
         switch(currentShape)
         {
             case Triangle:
             {
                 int32_t tri =
-                (lfoPhase >> 19) & 0x1FFF;
-                
+                    (lfoPhase >> 19) & 0x1FFF;
+
                 if (tri > 4095)
                     tri = 8191 - tri;
-                
+
                 return tri - 2048;
             }
-                
+
             case Sine:
             {
                 uint32_t index =
-                (lfoPhase >> 24) & 0xFF;
-                
+                    (lfoPhase >> 24) & 0xFF;
+
                 return sineTable[index];
             }
-                
+
             case Square:
             {
                 int32_t square =
-                (lfoPhase & 0x80000000)
-                ? 1536
-                : -1536;
-                
+                    (lfoPhase & 0x80000000)
+                    ? 1536
+                    : -1536;
+
+                // Smoothed square wave.
+
                 static int32_t smoothed = 0;
-                
+
                 smoothed +=
-                (square - smoothed) >> 4;
-                
+                    (square - smoothed) >> 4;
+
                 return smoothed;
             }
         }
+
         return 0;
     }
 
@@ -303,8 +373,6 @@ private:
                     int32_t depth,
                     int32_t lfo)
     {
-        // Overlay display for shape selection.
-
         if (overlayTimer > 0)
         {
             overlayTimer--;
@@ -343,13 +411,17 @@ private:
             return;
         }
 
-        // Normal parameter display.
+        LedBrightness(0,
+            ClampLED(rate));
 
-        LedBrightness(0, ClampLED(rate));
-        LedBrightness(1, ClampLED(depth));
+        LedBrightness(1,
+            ClampLED(depth));
 
-        LedBrightness(2, ClampLED(depth));
-        LedBrightness(3, ClampLED(rate));
+        LedBrightness(2,
+            ClampLED(depth));
+
+        LedBrightness(3,
+            ClampLED(rate));
 
         LedBrightness(4,
             ClampLED(lfo + 2048));
@@ -364,3 +436,4 @@ int main()
     LoChoVibes card;
     card.Run();
 }
+```
