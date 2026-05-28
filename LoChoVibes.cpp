@@ -36,6 +36,8 @@ public:
 
     uint32_t targetIncrement = 900;
     uint32_t currentIncrement = 900;
+    
+    int32_t squareSmoothed = 0;
 
     // Unsigned overflow is intentional.
 
@@ -419,12 +421,10 @@ private:
 
                 // Smoothed square wave.
 
-                static int32_t smoothed = 0;
+                squareSmoothed +=
+                    (square - squareSmoothed) >> 4;
 
-                smoothed +=
-                    (square - smoothed) >> 4;
-
-                return smoothed;
+                return squareSmoothed;
             }
         }
 
