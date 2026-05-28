@@ -264,17 +264,4 @@ The signal path is intentionally voiced toward unstable analog tape movement rat
 
 # Current Status
 
-LoCho Vibes is now in a stable and musically usable state.
-
-The current implementation includes:
-
-* stereo chorus and vibrato processing
-* external clock synchronization
-* CV modulation routing
-* dual CV LFO outputs
-* animated LED metering
-* multiple LFO waveforms
-* cassette-style degradation behaviour
-* compression-style coloration
-
-Designed for warped tape movement, unstable modulation, degraded stereo widening, and animated lo-fi textures.
+Still testing code
