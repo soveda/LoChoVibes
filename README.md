@@ -26,8 +26,8 @@ Inspired by the unstable movement and degraded character of the ZVEX Lo-Fi Junky
 | Main                    | Modulation rate                   |
 | X                       | Modulation depth                  |
 | Y                       | Character (Lo-Fi ↔ Compression)   |
-| Switch Up               | Chorus mode                       |
-| Switch Middle           | Vibrato mode                      |
+| Switch Up               | Vibrato mode                       |
+| Switch Middle           | Chorus mode                      |
 | Switch Down (momentary) | Cycle LFO shape                   |
 
 ---
@@ -127,8 +127,6 @@ The left and right channels use different delay offsets and opposite modulation 
 ---
 
 # LED Behaviour
-
-The LEDs perform two different jobs.
 
 ## Shape Display Overlay
 
