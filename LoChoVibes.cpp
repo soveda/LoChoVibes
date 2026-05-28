@@ -26,6 +26,16 @@ public:
     int16_t delayBufferR[DELAY_SIZE] = {};
 
     int32_t writeIndex = 0;
+    
+    // External clocking.
+
+    uint32_t samplesSincePulse = 0;
+    uint32_t lastPulseInterval = 24000;
+
+    bool externalClock = false;
+
+    uint32_t targetIncrement = 900;
+    uint32_t currentIncrement = 900;
 
     // Unsigned overflow is intentional.
 
@@ -73,6 +83,8 @@ public:
 
     void ProcessSample() override
     {
+        samplesSincePulse++;
+        
         // Mono input normalization.
 
         int32_t mono =
@@ -80,6 +92,7 @@ public:
 
         int32_t inL = mono;
         int32_t inR = mono;
+        
 
         // Controls.
 
@@ -91,6 +104,33 @@ public:
 
         int32_t characterKnob =
             KnobVal(Knob::Y);
+        
+        // CV modulation.
+
+        int32_t depthCV =
+            CVIn1() - 2048;
+
+        int32_t characterCV =
+            CVIn2() - 2048;
+
+        // Apply attenuated modulation.
+
+        depthKnob += depthCV >> 1;
+        characterKnob += characterCV >> 1;
+
+        // Clamp ranges.
+
+        if (depthKnob < 0)
+            depthKnob = 0;
+
+        if (depthKnob > 4095)
+            depthKnob = 4095;
+
+        if (characterKnob < 0)
+            characterKnob = 0;
+
+        if (characterKnob > 4095)
+            characterKnob = 4095;
 
         // Switch handling.
 
@@ -107,7 +147,36 @@ public:
         }
 
         bool vibratoMode =
-            (SwitchVal() == Switch::Middle);
+            (SwitchVal() == Switch::Up);
+        
+        // External clock detection.
+
+        if (PulseIn1RisingEdge())
+        {
+            lastPulseInterval =
+                samplesSincePulse;
+
+            samplesSincePulse = 0;
+
+            externalClock = true;
+
+            if (lastPulseInterval > 0)
+            {
+                targetIncrement =
+                    0xFFFFFFFFu /
+                    lastPulseInterval;
+            }
+        }
+        
+        // Return to internal clock
+        // if pulses disappear.
+
+        if (samplesSincePulse >
+            SAMPLE_RATE * 2)
+        {
+            externalClock = false;
+        }
+        
 
         // Character control.
         // CCW = lo-fi.
@@ -232,7 +301,14 @@ public:
                    lfo);
 
         // Outputs.
+        
+        // CV modulation outputs.
 
+        CVOut1(ClampLED(lfo + 2048));
+        CVOut2(ClampLED(2048 - lfo));
+        
+        // Audio outputs
+        
         AudioOut1(ClampAudio(outL));
         AudioOut2(ClampAudio(outR));
     }
@@ -297,8 +373,21 @@ private:
     {
         // Slightly slower overall rate.
 
-        lfoPhase +=
+        uint32_t internalIncrement =
             900 + (rate << 8);
+
+        if (externalClock)
+        {
+            currentIncrement +=
+                (targetIncrement -
+                 currentIncrement) >> 4;
+
+            lfoPhase += currentIncrement;
+        }
+        else
+        {
+            lfoPhase += internalIncrement;
+        }
 
         switch(currentShape)
         {
