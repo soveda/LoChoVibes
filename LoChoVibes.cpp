@@ -380,9 +380,12 @@ private:
 
         if (externalClock)
         {
+            int32_t delta =
+                static_cast<int32_t>(targetIncrement) -
+                static_cast<int32_t>(currentIncrement);
+
             currentIncrement +=
-                (targetIncrement -
-                 currentIncrement) >> 4;
+                delta >> 4;
 
             lfoPhase += currentIncrement;
         }
