@@ -280,11 +280,10 @@ public:
 
         if (!vibratoMode)
         {
-            outL =
-                ((inL * 4) + outL) / 5;
-
-            outR =
-                ((inR * 4) + outR) / 5;
+            outL = ((inL) + (outL * 2)) / 3;
+            outR = ((inR) + (outR * 2)) / 3;
+            outL = (outL * 9) >> 3; // 1.125x
+            outR = (outR * 9) >> 3;
         }
 
         // Write delay buffers.
