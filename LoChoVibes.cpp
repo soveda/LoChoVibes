@@ -15,7 +15,7 @@ public:
     {
         Triangle,
         Sine,
-        Square
+        SampleHold
     };
 
     static constexpr int32_t SAMPLE_RATE = 48000;
@@ -27,6 +27,9 @@ public:
 
     int32_t writeIndex = 0;
     
+    int32_t shTarget = 0;
+    int32_t shCurrent = 0;
+    
     // External clocking.
 
     uint32_t samplesSincePulse = 0;
@@ -37,7 +40,16 @@ public:
     uint32_t targetIncrement = 900;
     uint32_t currentIncrement = 900;
     
-    int32_t squareSmoothed = 0;
+    uint32_t shLastPhase = 0;
+    uint32_t randomSeed = 12345;
+    uint32_t FastRandom()
+    {
+        randomSeed =
+            randomSeed * 1664525u +
+            1013904223u;
+
+        return randomSeed;
+    }
 
     // Unsigned overflow is intentional.
 
@@ -256,10 +268,10 @@ public:
         // Stereo delay offsets.
 
         int32_t delayL =
-            48 + modulation;
+            72 + modulation;
 
         int32_t delayR =
-            96 - modulation;
+            72 - modulation;
 
         if (delayL < 1)
             delayL = 1;
@@ -414,19 +426,26 @@ private:
                 return sineTable[index];
             }
 
-            case Square:
+            case SampleHold:
             {
-                int32_t square =
-                    (lfoPhase & 0x80000000)
-                    ? 1536
-                    : -1536;
+                uint32_t phaseRegion =
+                    lfoPhase >> 29;
 
-                // Smoothed square wave.
+                if (phaseRegion != shLastPhase)
+                {
+                    shLastPhase = phaseRegion;
 
-                squareSmoothed +=
-                    (square - squareSmoothed) >> 4;
+                    shTarget =
+                        static_cast<int32_t>(
+                            FastRandom() & 0xFFF
+                        ) - 2048;
+                }
 
-                return squareSmoothed;
+                shCurrent +=
+                    (shTarget - shCurrent) >> 5;
+
+                return shCurrent;
+            
             }
         }
 
@@ -492,12 +511,12 @@ private:
 
                     break;
 
-                case Square:
-
+                case SampleHold:
+                {
                     LedOn(4);
                     LedOn(5);
-
                     break;
+                }
             }
 
             return;
