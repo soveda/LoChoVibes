@@ -2,17 +2,18 @@
 
 LoCho Vibes is a stereo lo-fi chorus and vibrato effect for the Music Thing Modular Workshop Computer.
 
-Inspired by the unstable movement and degraded character of the ZVEX Lo-Fi Junky, this card focuses on animated pitch movement, stereo widening, soft saturation, compression-style coloration, and broken cassette-style modulation.
+Inspired by the unstable movement and degraded character of the ZVEX Lo-Fi Junky, this card focuses on animated pitch movement, stereo widening, saturation, compression-style coloration, and degraded cassette-inspired modulation.
 
 ---
 
 # Features
 
 * Stereo chorus and vibrato modes
-* Triangle, sine, and slow drift LFO
+* Triangle, sine, and Random Drift LFO shapes
 * Bipolar Character control
-* Lo-fi degradation and compression behaviour
-* Soft tape-style saturation
+* Progressive lo-fi degradation
+* Bit-crushing and saturation
+* Soft limiting and compression coloration
 * Stereo modulated delay architecture
 * Stereo chorus widening
 * External pulse-clockable LFO
@@ -26,12 +27,12 @@ Inspired by the unstable movement and degraded character of the ZVEX Lo-Fi Junky
 
 | Control                 | Function                        |
 | ----------------------- | ------------------------------- |
-| Main                    | Modulation rate                 |
-| X                       | Modulation depth                |
+| Main                    | Modulation Rate                 |
+| X                       | Modulation Depth                |
 | Y                       | Character (Lo-Fi ↔ Compression) |
-| Switch Up               | Vibrato mode                    |
-| Switch Middle           | Chorus mode                     |
-| Switch Down (momentary) | Cycle LFO shape                 |
+| Switch Up               | Vibrato Mode                    |
+| Switch Middle           | Chorus Mode                     |
+| Switch Down (momentary) | Cycle LFO Shape                 |
 
 ---
 
@@ -54,14 +55,14 @@ Inspired by the unstable movement and degraded character of the ZVEX Lo-Fi Junky
 
 LoCho Vibes supports external pulse clocking via Pulse In 1.
 
-When an external pulse source is connected:
+When a pulse source is connected:
 
 * the internal LFO synchronizes to incoming clock pulses
-* modulation speed follows the pulse interval
-* clock transitions are smoothed internally
-* if clock pulses stop, the module automatically returns to internal modulation
+* modulation speed follows pulse timing
+* clock changes are smoothed internally
+* automatic fallback to internal clock occurs if pulses stop
 
-This allows synchronized chorus and vibrato movement with sequencers, trigger generators, clocks, and rhythm systems.
+This allows synchronized chorus and vibrato movement from sequencers, clocks, trigger generators, and rhythm systems.
 
 ---
 
@@ -71,84 +72,95 @@ This allows synchronized chorus and vibrato movement with sequencers, trigger ge
 
 CV In 1 modulates the X control.
 
-This allows external control over:
+This affects:
 
 * modulation intensity
-* stereo width movement
+* stereo width
+* chorus movement
 * vibrato depth
-* dynamic chorus animation
 
-Incoming CV is internally attenuated for musical modulation response.
+Incoming CV is attenuated internally for musical response.
+
+---
 
 ## CV In 2 — Character Modulation
 
 CV In 2 modulates the Y Character control.
 
-This allows dynamic movement between:
+This allows external movement between:
 
-* degraded cassette-style saturation
+* degraded cassette textures
 * neutral response
-* compressed modulation texture
+* compressed and saturated modulation
 
-Slow CV sources can create evolving tonal drift while faster modulation produces unstable and animated textures.
+Slow modulation sources can create evolving texture shifts while faster CV creates animated tonal movement.
 
 ---
 
 # CV Outputs
 
-LoCho Vibes outputs the internal LFO as control voltage signals.
+LoCho Vibes outputs the internal modulation waveform as CV.
 
 ## CV Out 1
 
-Outputs the main LFO waveform.
+Outputs the main LFO.
 
 ## CV Out 2
 
-Outputs an inverted version of the LFO.
+Outputs an inverted version of the same LFO.
 
-These outputs can be used for:
+Applications include:
 
 * filter modulation
 * stereo panning
-* synchronized movement elsewhere in a patch
-* clocked animation of external modules
-* opposing modulation movement
+* synchronized movement
+* clocked animation
+* opposing modulation sources
 
-The output reflects the currently selected waveform and external clock synchronization state.
+The outputs always reflect the selected waveform and clock state.
 
 ---
 
 # Character Control
 
-The Character knob is bipolar.
 
 ## Counter-Clockwise — Lo-Fi
 
-Turning the control counter-clockwise introduces:
+Turning the control counter-clockwise progressively introduces:
 
-* softer headroom
-* degraded saturation
-* darker transient response
-* unstable cassette-style texture
-* reduced signal clarity
+* reduced signal level
+* increasing tape-style saturation
+* reduced resolution through bit reduction
+* softened transients
+* degraded cassette texture
+* dirtier and grainier modulation
+
+
+---
 
 ## Center Position — Neutral
 
-At approximately 12 o’clock:
+At approximately 12 o'clock:
 
-* saturation becomes minimal
-* dynamics remain mostly unchanged
-* modulation becomes cleaner and more transparent
+* minimal saturation
+* no bit reduction
+* no compression coloration
+* cleanest modulation response
+
+---
 
 ## Clockwise — Compression
 
-Turning clockwise introduces:
+Turning clockwise progressively introduces:
 
-* gain increase
+* increased input drive
 * soft limiting
-* compressed transient response
+* stronger saturation
+* transient compression
+* makeup gain
 * denser modulation texture
-* more forward chorus character
+
+Higher settings create a louder, more forward sound that resembles heavily driven modulation pedals and compressed tape playback.
 
 ---
 
@@ -159,22 +171,19 @@ Turning clockwise introduces:
 In chorus mode:
 
 * dry signal remains blended with the delay line
-* modulation is intentionally restrained
-* stereo delay offsets widen the image
-* chorus remains relatively subtle and musical
-
-The chorus voicing is designed to sit closer to vintage modulation pedals and tape chorus than exaggerated modern DSP chorus.
+* stereo modulation widens the image
+* modulation varies from restrained and subtle to over the top and chaotic.
+---
 
 ## Vibrato
 
 In vibrato mode:
 
-* output becomes fully wet
-* dry signal is completely removed
-* pitch modulation becomes much more obvious
-* behaves more like warped tape playback or unstable cassette transport
+* the effect becomes fully wet
+* pitch modulation becomes significantly more obvious
+* behaviour resembles unstable tape transport and warped cassette playback
 
-At higher depths this mode can become heavily seasick and degraded.
+At higher depth settings the result can become heavily seasick and degraded.
 
 ---
 
@@ -182,34 +191,44 @@ At higher depths this mode can become heavily seasick and degraded.
 
 ## Triangle
 
-Smooth and classic.
+Classic linear modulation.
 
-Good for traditional chorus movement and subtle stereo animation.
+Provides traditional chorus movement and predictable stereo animation.
+
+---
 
 ## Sine
 
-Softer and more liquid.
+Smooth and fluid.
 
-Useful for drifting modulation and gentler tape-style wobble.
+Useful for subtle pitch movement and gentle tape-style wobble.
 
-## Square
+---
 
-Abrupt stepped modulation with smoothing applied internally.
+## Random Drift
 
-Produces broken cassette-style pitch jumps, unstable stutter movement, and aggressive lo-fi modulation textures.
+A combination of slow modulation and random wandering movement.
+Modulation is affected by the depth knob and speed cotrol
+* unstable tape transport behaviour
+* slow wandering pitch drift
+* imperfect mechanical motion
+* less predictable stereo movement
+* degraded cassette-style character
+
+This mode is intended to emulate old tape machines that never move quite the same way twice.
 
 ---
 
 # Stereo Behaviour
 
-LoCho Vibes converts incoming audio to mono internally before generating a stereo modulation field.
+LoCho Vibes converts incoming audio to mono internally before creating a stereo modulation field.
 
-The left and right channels use different delay offsets and opposite modulation movement to create:
+The left and right channels use opposing delay modulation and offset delay times to create:
 
 * stereo widening
-* animated spatial movement
-* unstable tape-style drift
-* asymmetrical chorus behaviour
+* animated movement
+* asymmetrical modulation
+* tape-style instability
 
 ---
 
@@ -221,47 +240,32 @@ When the switch is tapped downward:
 
 * the LFO shape changes
 * LEDs briefly display the selected waveform
-* after a short timeout the LEDs return to normal mode
+* normal LED operation returns automatically
 
-| Shape    | LEDs       |
-| -------- | ---------- |
-| Triangle | Top row    |
-| Sine     | Middle row |
-| Square   | Bottom row |
-
-## Normal Display Mode
-
-During normal operation:
-
-| LED   | Function           |
-| ----- | ------------------ |
-| LED 0 | Modulation rate    |
-| LED 1 | Modulation depth   |
-| LED 2 | Lo-fi amount       |
-| LED 3 | Compression amount |
-| LED 4 | LFO phase          |
-| LED 5 | Inverted LFO phase |
-
-LED brightness reflects both modulation movement and current parameter state.
+| Shape        | LEDs     |
+| ------------ | -------- |
+| Triangle     | LEDs 0–1 |
+| Sine         | LEDs 2–3 |
+| Random Drift | LEDs 4–5 |
 
 ---
 
-# Internal Processing
+## Normal Display Mode
 
-Internally the effect uses:
+| LED   | Function           |
+| ----- | ------------------ |
+| LED 0 | Modulation Rate    |
+| LED 1 | Modulation Depth   |
+| LED 2 | Lo-Fi Amount       |
+| LED 3 | Compression Amount |
+| LED 4 | LFO Phase          |
+| LED 5 | Inverted LFO Phase |
 
-* stereo modulated delay lines
-* continuously running LFO modulation
-* smoothed waveform transitions
-* tape-style soft clipping
-* soft limiting and saturation stages
-* clock-synchronized modulation behaviour
-* bipolar character processing
+LED brightness reflects both parameter values and modulation movement.
 
-The signal path is intentionally voiced toward unstable analog tape movement rather than pristine digital chorus.
 
 ---
 
 # Current Status
 
-Still testing code
+Actively under development and testing.
