@@ -15,7 +15,7 @@ public:
     {
         Triangle,
         Sine,
-        SampleHold
+        RandomDrift
     };
 
     static constexpr int32_t SAMPLE_RATE = 48000;
@@ -27,8 +27,12 @@ public:
 
     int32_t writeIndex = 0;
     
-    int32_t shTarget = 0;
-    int32_t shCurrent = 0;
+    int32_t driftTarget = 0;
+    int32_t driftCurrent = 0;
+
+    uint32_t driftCounter = 0;
+    uint32_t driftInterval = SAMPLE_RATE;
+    
     
     // External clocking.
 
@@ -40,7 +44,7 @@ public:
     uint32_t targetIncrement = 900;
     uint32_t currentIncrement = 900;
     
-    uint32_t shLastPhase = 0;
+    
     uint32_t randomSeed = 12345;
     uint32_t FastRandom()
     {
@@ -208,16 +212,16 @@ public:
                 -centered;
 
             inL =
-                (inL * (4096 - (lofi >> 2))) >> 12;
+                (inL * (4096 - (lofi >> 1))) >> 12;
 
             inR =
-                (inR * (4096 - (lofi >> 2))) >> 12;
+                (inR * (4096 - (lofi >> 1))) >> 12;
 
             inL =
-                SoftClip(inL, lofi >> 3);
+                SoftClip(inL, lofi);
 
             inR =
-                SoftClip(inR, lofi >> 3);
+                SoftClip(inR, lofi);
         }
 
         // COMPRESSED SIDE.
@@ -228,10 +232,10 @@ public:
                 centered;
 
             inL =
-                (inL * (4096 + (comp >> 1))) >> 12;
+                (inL * (4096 + comp)) >> 12;
 
             inR =
-                (inR * (4096 + (comp >> 1))) >> 12;
+                (inR * (4096 + comp)) >> 12;
 
             inL =
                 SoftLimit(inL);
@@ -268,10 +272,10 @@ public:
         // Stereo delay offsets.
 
         int32_t delayL =
-            72 + modulation;
+            40 + modulation;
 
         int32_t delayR =
-            72 - modulation;
+            104 - modulation;
 
         if (delayL < 1)
             delayL = 1;
@@ -292,10 +296,15 @@ public:
 
         if (!vibratoMode)
         {
-            outL = ((inL) + (outL * 2)) / 3;
-            outR = ((inR) + (outR * 2)) / 3;
-            outL = (outL * 9) >> 3; // 1.125x
-            outR = (outR * 9) >> 3;
+            if (!vibratoMode)
+            {
+                outL = (inL + outL) >> 1;
+                outR = (inR + outR) >> 1;
+
+                outL = (outL * 9) >> 3;  // 1.125x
+                outR = (outR * 9) >> 3;
+            }
+           
         }
 
         // Write delay buffers.
@@ -343,7 +352,7 @@ private:
                      int32_t amount)
     {
         int32_t drive =
-            2048 + (amount >> 4);
+            2048 + (amount >> 2);
 
         int32_t x =
             (input * drive) >> 11;
@@ -426,26 +435,27 @@ private:
                 return sineTable[index];
             }
 
-            case SampleHold:
+            case RandomDrift:
             {
-                uint32_t phaseRegion =
-                    lfoPhase >> 29;
+                uint32_t index =
+                    (lfoPhase >> 25) & 0xFF;
 
-                if (phaseRegion != shLastPhase)
+                int32_t slowSine =
+                    sineTable[index] >> 2;
+
+                if ((FastRandom() & 511) == 0)
                 {
-                    shLastPhase = phaseRegion;
+                    driftCurrent +=
+                        ((int32_t)(FastRandom() & 15)) - 8;
 
-                    shTarget =
-                        static_cast<int32_t>(
-                            FastRandom() & 0xFFF
-                        ) - 2048;
+                    if (driftCurrent > 512)
+                        driftCurrent = 512;
+
+                    if (driftCurrent < -512)
+                        driftCurrent = -512;
                 }
 
-                shCurrent +=
-                    (shTarget - shCurrent) >> 5;
-
-                return shCurrent;
-            
+                return slowSine + driftCurrent;
             }
         }
 
@@ -511,7 +521,7 @@ private:
 
                     break;
 
-                case SampleHold:
+                case RandomDrift:
                 {
                     LedOn(4);
                     LedOn(5);

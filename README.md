@@ -9,7 +9,7 @@ Inspired by the unstable movement and degraded character of the ZVEX Lo-Fi Junky
 # Features
 
 * Stereo chorus and vibrato modes
-* Triangle, sine, and smoothed square-wave LFOs
+* Triangle, sine, and slow drift LFO
 * Bipolar Character control
 * Lo-fi degradation and compression behaviour
 * Soft tape-style saturation
