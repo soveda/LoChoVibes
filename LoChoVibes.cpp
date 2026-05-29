@@ -211,11 +211,29 @@ public:
             int32_t lofi =
                 -centered;
 
+            // Level reduction.
+
             inL =
                 (inL * (4096 - (lofi >> 1))) >> 12;
 
             inR =
                 (inR * (4096 - (lofi >> 1))) >> 12;
+
+            // Progressive bit reduction.
+
+            int32_t crush =
+                1 + (lofi >> 9);
+
+            if (crush > 6)
+                crush = 6;
+
+            inL =
+                (inL >> crush) << crush;
+
+            inR =
+                (inR >> crush) << crush;
+
+            // Stronger tape saturation.
 
             inL =
                 SoftClip(inL, lofi);
@@ -229,32 +247,44 @@ public:
         else if (centered > 0)
         {
             int32_t comp =
-                centered;
-
+            centered;
+            
+            // More drive.
+            
             inL =
-                (inL * (4096 + comp)) >> 12;
-
+            (inL * (4096 + (comp << 1))) >> 12;
+            
             inR =
-                (inR * (4096 + comp)) >> 12;
-
+            (inR * (4096 + (comp << 1))) >> 12;
+            
             inL =
-                SoftLimit(inL);
-
+            SoftLimit(inL);
+            
             inR =
-                SoftLimit(inR);
-
+            SoftLimit(inR);
+            
             inL =
-                SoftClip(inL, comp >> 4);
-
+            SoftClip(inL, comp >> 3);
+            
             inR =
-                SoftClip(inR, comp >> 4);
+            SoftClip(inR, comp >> 3);
+            
+            // Makeup gain.
+            
+            inL =
+            (inL * 7) >> 2;
+            
+            inR =
+            (inR * 7) >> 2;
         }
-
+            //centre position
+            
         else
         {
-            inL = SoftClip(inL, 0);
-            inR = SoftClip(inR, 0);
+                inL = SoftClip(inL, 0);
+                inR = SoftClip(inR, 0);
         }
+        
 
         // Generate LFO.
 
@@ -296,15 +326,11 @@ public:
 
         if (!vibratoMode)
         {
-            if (!vibratoMode)
-            {
-                outL = (inL + outL) >> 1;
-                outR = (inR + outR) >> 1;
+            outL = (inL + outL) >> 1;
+            outR = (inR + outR) >> 1;
 
-                outL = (outL * 9) >> 3;  // 1.125x
-                outR = (outR * 9) >> 3;
-            }
-           
+            outL = (outL * 9) >> 3;
+            outR = (outR * 9) >> 3;
         }
 
         // Write delay buffers.
@@ -440,22 +466,28 @@ private:
                 uint32_t index =
                     (lfoPhase >> 25) & 0xFF;
 
-                int32_t slowSine =
-                    sineTable[index] >> 2;
+                // Slow wow component.
 
-                if ((FastRandom() & 511) == 0)
+                int32_t slowSine =
+                    sineTable[index] >> 1;
+
+                // Wandering drift.
+
+                if ((FastRandom() & 255) == 0)
                 {
                     driftCurrent +=
-                        ((int32_t)(FastRandom() & 15)) - 8;
+                        ((int32_t)(FastRandom() & 31)) - 16;
 
-                    if (driftCurrent > 512)
-                        driftCurrent = 512;
+                    if (driftCurrent > 768)
+                        driftCurrent = 768;
 
-                    if (driftCurrent < -512)
-                        driftCurrent = -512;
+                    if (driftCurrent < -768)
+                        driftCurrent = -768;
                 }
 
-                return slowSine + driftCurrent;
+                return
+                    slowSine +
+                    driftCurrent;
             }
         }
 
