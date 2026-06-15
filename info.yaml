@@ -1,8 +1,89 @@
-name: LoChoVibes
-author: Adrian Vos
-version: 0.1.0
-status: released
+Description: Stereo lo-fi chorus and vibrato effect with selectable LFO shapes, external clocking, saturation, and compression-style character.
+Language: C++ (Pico SDK)
+Creator: Adrian Vos
+Version: 0.1.0
+Status: Released
+repository: https://github.com/soveda/LoChoVibes
+tags:
+  - effect
+  - chorus
+  - vibrato
+  - lo-fi
+  - modulation
+  - stereo
+  - clock
 
-  Stereo chorus and vibrato effect for Workshop Computer
-  featuring triangle, sine, and slow drift LFO modes,
-  modulation-based delay movement, and tape-style saturation.
+manual: |
+  LoChoVibes is a stereo lo-fi chorus and vibrato for the Music Thing Modular
+  Workshop Computer. Main controls modulation rate, X controls modulation depth,
+  and Y controls character from degraded lo-fi texture through neutral to
+  compressed/saturated movement. Switch up selects vibrato, switch middle
+  selects chorus, and momentary switch down cycles the LFO shape. Pulse In 1 can
+  clock the LFO. CV In 1 modulates depth and CV In 2 modulates character.
+
+panel:
+  inputs:
+    - id: AudioIn1
+      name: Audio In 1
+      description: Mono audio input
+      type: audio
+    - id: AudioIn2
+      name: Audio In 2
+      description: Additional mono audio input, summed with Audio In 1
+      type: audio
+    - id: CVIn1
+      name: CV In 1
+      description: Depth modulation
+      type: cv
+    - id: CVIn2
+      name: CV In 2
+      description: Character modulation
+      type: cv
+    - id: PulseIn1
+      name: Pulse In 1
+      description: External LFO clock
+      type: pulse
+    - id: PulseIn2
+      name: Pulse In 2
+      description: Secondary pulse input
+      type: pulse
+  outputs:
+    - id: AudioOut1
+      name: Audio Out 1
+      description: Left audio output
+      type: audio
+    - id: AudioOut2
+      name: Audio Out 2
+      description: Right audio output
+      type: audio
+    - id: CVOut1
+      name: CV Out 1
+      description: Main LFO CV output
+      type: cv
+    - id: CVOut2
+      name: CV Out 2
+      description: Inverted LFO CV output
+      type: cv
+    - id: PulseOut1
+      name: Pulse Out 1
+      description: LFO or clock-related pulse output
+      type: pulse
+    - id: PulseOut2
+      name: Pulse Out 2
+      description: Secondary pulse output
+      type: pulse
+
+controls:
+  knobs:
+    - when: { z: up }
+      main: { name: Modulation Rate, description: Vibrato LFO rate }
+      x: { name: Modulation Depth, description: Vibrato pitch depth }
+      y: { name: Character, description: Lo-fi to compressed/saturated character }
+    - when: { z: middle }
+      main: { name: Modulation Rate, description: Chorus LFO rate }
+      x: { name: Modulation Depth, description: Chorus width and movement }
+      y: { name: Character, description: Lo-fi to compressed/saturated character }
+    - when: { z: down, gesture: momentary }
+      main: { name: LFO Shape Select, description: Cycles LFO shape }
+      x: { name: Modulation Depth, description: Held chorus/vibrato depth }
+      y: { name: Character, description: Held character setting }
